@@ -1,13 +1,12 @@
 /* This C Code for ATTINY series (specifically ATTINY85) was developed by ASHUTOSH JHA
    Further modifications by Saurabh Bansode
-   Latest edit - 8:00 PM, 3/5/2020 by AJ - 
-   1.	Changed how the way RAM works to most accurate depiction
-   2.	Modified BRNE,RJMP instructions to most accurate
-   3.	Added I/O register file
-   4.	Changed reg to GPR (General Purpose Register), RAM to prog_mem
-   5. 	Added Timer0 FastPWM inverting Mode
+   Latest edit - 5:40 PM, 30/4/2020 by AJ - 
+   1.	Changed how the way RAM works to most accurate depiction - by AJ
+   2.	Modified BRNE instruction - by AJ
+   3.	Added PINB port for inputting data - by AJ
+   4.	Removed "Rjump_Calc" function - by AJ
 
-   **NOTE	:-	The functions "MapToRam", "output" and "input" &
+   **NOTE	:-	The functions "MapToRam" and "output" &
    				the variables PB0 ... PB5 
    				linked to the VHDL code of ATTINY85
    				by "ghdl_access.vhdl" file.	*/ 
@@ -18,7 +17,7 @@
 #include<math.h>
 #define size 8192		//8kb ram size for attiny 85
 
-int debugMode=1;
+int debugMode=1,zero_flag=0;
 int PB0,PB1,PB2,PB3,PB4,PB5,wait_Clocks=0;
 char PC=0;
 struct memory			//Structure to store RAM and other registers
@@ -123,6 +122,24 @@ void Hex2Bin(int binSel,int hex)			//Function to convert hex number to binary ar
 	        i++;
 	        hex /= 2;
 	    }
+	    /*if(t > 15)
+	    {
+	        int t0=bin[binSel].arr[0],t1=bin[binSel].arr[1],t2=bin[binSel].arr[2],t3=bin[binSel].arr[3];
+	        for(i=0;i<4;i++)
+	        {
+	            bin[binSel].arr[i]=bin[binSel].arr[4+i];
+	        }
+
+	        bin[binSel].arr[4]=t0;
+	        bin[binSel].arr[5]=t1;
+	        bin[binSel].arr[6]=t2;
+	        bin[binSel].arr[7]=t3;
+	    }
+
+	    printf("\nbin: %d\n",binSel);
+	    for(i=0;i<8;i++)
+	    	printf("%d",bin[binSel].arr[i]);
+	    printf("\n");*/
 }
 
 
@@ -788,37 +805,6 @@ void Compute()			//Function that performs main computation based on current inst
 
 
 /************************************************************************************************/
-//	SEZ by SUMANTO	14/05/2020
-	else if(b1==0x9 && b2==4 && b3==0x1 && b4==8)
-	{
-		if(debugMode==1)
-	    	printf("SEZ instruction decoded\n");
-	    SREG[1].data = 1;
-	    PC += 0x4;
-	}
-
-/************************************************************************************************/
-//	SET by SUMANTO	14/05/2020
-	else if(b1==0x9 && b2==4 && b3==0x6 && b4==8)
-	{
-		if(debugMode==1)
-	    	printf("SET instruction decoded\n");
-	    SREG[6].data = 1;
-	    PC += 0x4;
-	}
-
-/************************************************************************************************/
-//	SEV by SUMANTO	14/05/2020
-	else if(b1==0x9 && b2==4 && b3==0x3 && b4==8)
-	{
-		if(debugMode==1)
-	    	printf("SEV instruction decoded\n");
-	    SREG[3].data = 1;
-	    PC += 0x4;
-	}
-
-
-/************************************************************************************************/
 //	SEC by SB & AJ	14/03/2020
 	else if(b1==0x9 && b2==4 && b3==0 && b4==8)
 	{
@@ -878,15 +864,13 @@ void Compute()			//Function that performs main computation based on current inst
 
 		if(GPR[b3+16].data == k)
 			{
-				SREG[1].data = 1;
-				if(debugMode == 1)
-					printf("\nZero flag set: %d\n",SREG[1].data);
+				zero_flag = 1;
+				printf("\nZero flag set: %d\n",SREG[1].data);
 			}
 		else if(GPR[b3+16].data != k)
 			{
-				SREG[1].data = 0;
-				if(debugMode == 1)
-					printf("\nZero flag reset\n");
+				zero_flag = 0;
+				printf("\nZero flag reset\n");
 			}
 	    PC += 0x2;
 	}
@@ -1004,7 +988,7 @@ void Compute()			//Function that performs main computation based on current inst
 		char temp=0x0;
 		if(debugMode==1)
 			printf("\nBRNE instruction decoded\n");
-		if(SREG[1].data == 0)
+		if(zero_flag == 0)
 		{
 			//For getting Kbits
 			Hex2Bin(0,b2);
