@@ -788,7 +788,7 @@ void Compute()			//Function that performs main computation based on current inst
 
 
 /************************************************************************************************/
-//	SEZ by SUMANTO	14/05/2020
+//	SEZ by SUMANTO	04/05/2020
 	else if(b1==0x9 && b2==4 && b3==0x1 && b4==8)
 	{
 		if(debugMode==1)
@@ -798,7 +798,7 @@ void Compute()			//Function that performs main computation based on current inst
 	}
 
 /************************************************************************************************/
-//	SET by SUMANTO	14/05/2020
+//	SET by SUMANTO	04/05/2020
 	else if(b1==0x9 && b2==4 && b3==0x6 && b4==8)
 	{
 		if(debugMode==1)
@@ -808,7 +808,7 @@ void Compute()			//Function that performs main computation based on current inst
 	}
 
 /************************************************************************************************/
-//	SEV by SUMANTO	14/05/2020
+//	SEV by SUMANTO	04/05/2020
 	else if(b1==0x9 && b2==4 && b3==0x3 && b4==8)
 	{
 		if(debugMode==1)
