@@ -713,6 +713,37 @@ void Compute()			//Function that performs main computation based on current inst
 
 
 /************************************************************************************************/
+//	SEZ by SUMANTO	14/05/2020
+	else if(b1==0x9 && b2==4 && b3==0x1 && b4==8)
+	{
+		if(debugMode==1)
+	    	printf("SEZ instruction decoded\n");
+	    SREG[1].data = 1;
+	    PC += 0x4;
+	}
+
+/************************************************************************************************/
+//	SET by SUMANTO	14/05/2020
+	else if(b1==0x9 && b2==4 && b3==0x6 && b4==8)
+	{
+		if(debugMode==1)
+	    	printf("SET instruction decoded\n");
+	    SREG[6].data = 1;
+	    PC += 0x4;
+	}
+
+/************************************************************************************************/
+//	SEV by SUMANTO	14/05/2020
+	else if(b1==0x9 && b2==4 && b3==0x3 && b4==8)
+	{
+		if(debugMode==1)
+	    	printf("SEV instruction decoded\n");
+	    SREG[3].data = 1;
+	    PC += 0x4;
+	}
+
+
+/************************************************************************************************/
 //	SEC by SB & AJ	14/03/2020
 	else if(b1==0x9 && b2==4 && b3==0 && b4==8)
 	{
