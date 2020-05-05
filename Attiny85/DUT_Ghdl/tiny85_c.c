@@ -786,7 +786,6 @@ void Compute()			//Function that performs main computation based on current inst
 	    PC += 0x2;
 	}
 
-
 /************************************************************************************************/
 //	SEZ by SUMANTO	04/05/2020
 	else if(b1==0x9 && b2==4 && b3==0x1 && b4==8)
@@ -794,7 +793,7 @@ void Compute()			//Function that performs main computation based on current inst
 		if(debugMode==1)
 	    	printf("SEZ instruction decoded\n");
 	    SREG[1].data = 1;
-	    PC += 0x4;
+	    PC += 0x2;
 	}
 
 /************************************************************************************************/
@@ -804,7 +803,7 @@ void Compute()			//Function that performs main computation based on current inst
 		if(debugMode==1)
 	    	printf("SET instruction decoded\n");
 	    SREG[6].data = 1;
-	    PC += 0x4;
+	    PC += 0x2;
 	}
 
 /************************************************************************************************/
@@ -814,10 +813,8 @@ void Compute()			//Function that performs main computation based on current inst
 		if(debugMode==1)
 	    	printf("SEV instruction decoded\n");
 	    SREG[3].data = 1;
-	    PC += 0x4;
+	    PC += 0x2;
 	}
-
-
 /************************************************************************************************/
 //	SEC by SB & AJ	14/03/2020
 	else if(b1==0x9 && b2==4 && b3==0 && b4==8)
@@ -1129,3 +1126,4 @@ void output(int flag)			//Function to compute output for current instruction
 			PrintSREG();
 	}
 }
+
