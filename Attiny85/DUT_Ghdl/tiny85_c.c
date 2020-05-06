@@ -816,6 +816,53 @@ void Compute()			//Function that performs main computation based on current inst
 	    PC += 0x2;
 	}
 /************************************************************************************************/
+//	MOV by SUMANTO	06/05/2020
+	else if(b1==0x2 && b2>=12 && b2<=15)
+	{	
+		int a=GPR[b3+16].data,b=GPR[b4+16].data;
+		if(debugMode==1)
+		{
+			printf("MOV instruction decoded\n");
+			printf("\nBefore execution: Reg[%d] = %x, Reg[%d] = %x\n",b3+16,GPR[b3+16].data,b4+16,GPR[b3+16].data);
+		}
+
+		GPR[b3+16].data = GPR[b4+16].data;
+
+		if(debugMode==1)
+		{
+			printf("\nAfter execution Reg[%d] = %x, Reg[%d] = %x\n",b3+16,GPR[b3+16].data,b4+16,GPR[b3+16].data);
+		}
+		PC += 0x2;
+	}
+/************************************************************************************************/
+/*	LSL by SUMANTO	06/05/2020
+	else if(b1==0x0 && b2>=12 && b2<=15 && b3==b4)
+	{	
+		int a=GPR[b3+16].data,b=GPR[b4+16].data;
+		if(debugMode==1)
+		{
+			printf("LSL instruction decoded\n");
+			printf("\nBefore execution: Reg[%d] = %x\n",b3+16,GPR[b3+16].data);
+		}
+
+		ClearBins(0);
+		Hex2Bin(0,a); 
+		ClearBins(1);
+		Hex2Bin(1,b);
+		ClearBins(2);
+
+		Bin_Add(0,1,2,0,0);
+
+	    UpdateSreg();
+
+		GPR[b3+16].data += GPR[b4+16].data;
+
+		if(debugMode==1)
+		{
+			printf("\nAfter execution Reg[%d] = %x\n",b3+16,GPR[b3+16].data);
+		}
+		PC += 0x2;
+	}*/
 //	SEC by SB & AJ	14/03/2020
 	else if(b1==0x9 && b2==4 && b3==0 && b4==8)
 	{
