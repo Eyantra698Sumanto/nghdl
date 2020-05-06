@@ -823,14 +823,14 @@ void Compute()			//Function that performs main computation based on current inst
 		if(debugMode==1)
 		{
 			printf("MOV instruction decoded\n");
-			printf("\nBefore execution: Reg[%d] = %x, Reg[%d] = %x\n",b3+16,GPR[b3+16].data,b4+16,GPR[b3+16].data);
+			printf("\nBefore execution: Reg[%d] = %x, Reg[%d] = %x\n",b3+16,GPR[b3+16].data,b4+16,GPR[b4+16].data);
 		}
 
 		GPR[b3+16].data = GPR[b4+16].data;
 
 		if(debugMode==1)
 		{
-			printf("\nAfter execution Reg[%d] = %x, Reg[%d] = %x\n",b3+16,GPR[b3+16].data,b4+16,GPR[b3+16].data);
+			printf("\nAfter execution Reg[%d] = %x, Reg[%d] = %x\n",b3+16,GPR[b3+16].data,b4+16,GPR[b4+16].data);
 		}
 		PC += 0x2;
 	}
