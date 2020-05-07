@@ -20,7 +20,7 @@
 
 int debugMode=1;
 int PB0,PB1,PB2,PB3,PB4,PB5,wait_Clocks=0;
-char PC=0;
+char PC=0;;
 struct memory			//Structure to store RAM and other registers
 {
 	unsigned char data;
@@ -399,7 +399,7 @@ void Compute()			//Function that performs main computation based on current inst
 	b4 = a2%16;
 	if (debugMode==1)
 		printf("instruction:%X%X%X%X\n",b1,b2,b3,b4);
-
+/************************************************************************************************/	
 //	ADD by AJ		date
 	if(b1==0x0 && b2>=12 && b2<=15)
 	{	
@@ -818,7 +818,7 @@ void Compute()			//Function that performs main computation based on current inst
 /************************************************************************************************/
 //	MOV by SUMANTO	06/05/2020
 	else if(b1==0x2 && b2>=12 && b2<=15)
-	{	
+	{	GPR[b3+16].data=0x11;GPR[b4+16].data=0x23;
 		int a=GPR[b3+16].data,b=GPR[b4+16].data;
 		if(debugMode==1)
 		{
@@ -1094,7 +1094,153 @@ void Compute()			//Function that performs main computation based on current inst
 			PC += 0x2;
 
 	}
+/************************************************************************************************/
+//BLD by SUMANTO KAR, modified by SUMANTO KAR on 7/5/2020
+	else if(b1==0xf && b2>=8 && b2<=9 && b4<=7)
+	{	
+		GPR[b3+16].data=0xAA;
+		int a=GPR[b3+16].data,mask=0;
+		if(debugMode==1)
+		{
+			printf("BLD instruction decoded\n");
+			printf("\nBefore execution: Reg[%d] = %x\n",b3+16,GPR[b3+16].data);
+		}
+		mask=1<<b4;
+			 
+		GPR[b3+16].data =(GPR[b3+16].data & ~mask)|(SREG[6].data<<b4) ;
+		if(debugMode==1)
+		{
+			printf("\nAfter execution Reg[%d] = %x\n",b3+16,GPR[b3+16].data);
+		}
+		PC += 0x2;
+	}
+/************************************************************************************************/
+//BST by SUMANTO KAR, modified by SUMANTO KAR on 7/5/2020
+	else if(b1==0xf && b2>=0xA && b2<=0xB && b4<=7)
+	{	
+		GPR[b3+16].data=0xAA;
+		int a=GPR[b3+16].data;
+		if(debugMode==1)
+		{
+			printf("BST instruction decoded\n");
+			printf("\nBefore execution: Reg[%d] = %x\n",b3+16,GPR[b3+16].data);
+		}
+			 
+		SREG[6].data =1&(GPR[b3+16].data>>(b4)) ;
+		PC += 0x2;
+	}
 
+
+/************************************************************************************************/
+//BRBC by SUMANTO KAR, modified by SUMANTO KAR on 7/5/2020
+/*	else if(b1==0xf && b2>=4 && b2<=7)
+	{	PC=0x3A;
+		int kbits[7],jump=0,l=0;
+		char temp=0x0;
+		if(debugMode==1)
+			printf("\nBRBC instruction decoded\n");
+		l=b4%0x8;
+		if(SREG[l].data == 0)
+		{
+			//For getting Kbits
+			Hex2Bin(0,b2);
+			Hex2Bin(1,b3);
+			Hex2Bin(2,b4);
+			kbits[6] = bin[0].arr[0];
+			kbits[5] = bin[0].arr[1];
+			for(i=0;i<4;i++)
+				kbits[i+1] = bin[1].arr[i];
+			kbits[0] = bin[2].arr[3];
+
+			if(kbits[6] == 1)	//Signed bit set (k is negative)
+			{
+				for(i=0;i<6;i++)
+					temp += kbits[i]*pow(2,i);
+				temp -= 0x01;
+				i=0;
+				while(temp!=0 && i<=6)
+				{
+					kbits[i] = temp % 2;
+					i++;
+					temp /= 2;
+				}
+				for(i=0;i<6;i++)
+					kbits[i] = !kbits[i];
+
+				for(i=0;i<6;i++)
+					jump += kbits[i]*pow(2,i);
+				jump *= -2;
+			}
+			else
+			{
+				for(i=0;i<6;i++)
+					jump += kbits[i]*pow(2,i);
+				jump *= 2;
+			}
+			if(debugMode == 1)
+				printf("\nJumping from PC:%X to PC: %X",PC,PC+jump+0x02);
+			PC += jump + 0x02;
+
+		}
+		else
+			PC += 0x2;
+
+	}
+/************************************************************************************************/
+//BRBS by SUMANTO KAR, modified by SUMANTO KAR on 7/5/2020
+	/*else if(b1==0xf && b2>=0 && b2<=3)
+	{	PC=0x3A;
+		int kbits[7],jump=0,l=0;
+		char temp=0x0;
+		if(debugMode==1)
+			printf("\nBRBS instruction decoded\n");
+		l=b4%0x8;
+		if(SREG[l].data == 1)
+		{
+			//For getting Kbits
+			Hex2Bin(0,b2);
+			Hex2Bin(1,b3);
+			Hex2Bin(2,b4);
+			kbits[6] = bin[0].arr[0];
+			kbits[5] = bin[0].arr[1];
+			for(i=0;i<4;i++)
+				kbits[i+1] = bin[1].arr[i];
+			kbits[0] = bin[2].arr[3];
+
+			if(kbits[6] == 1)	//Signed bit set (k is negative)
+			{
+				for(i=0;i<6;i++)
+					temp += kbits[i]*pow(2,i);
+				temp -= 0x01;
+				i=0;
+				while(temp!=0 && i<=6)
+				{
+					kbits[i] = temp % 2;
+					i++;
+					temp /= 2;
+				}
+				for(i=0;i<6;i++)
+					kbits[i] = !kbits[i];
+
+				for(i=0;i<6;i++)
+					jump += kbits[i]*pow(2,i);
+				jump *= -2;
+			}
+			else
+			{
+				for(i=0;i<6;i++)
+					jump += kbits[i]*pow(2,i);
+				jump *= 2;
+			}
+			if(debugMode == 1)
+				printf("\nJumping from PC:%X to PC: %X",PC,PC+jump+0x02);
+			PC += jump + 0x02;
+
+		}
+		else
+			PC += 0x2;
+
+	}*/
 /************************************************************************************************/
 //	BREQ by AJ		27/04/20
 	/*else if(b1==0xf && b2>=3 && (b4==0x01||b4==0x09))
