@@ -1133,7 +1133,7 @@ void Compute()			//Function that performs main computation based on current inst
 
 /************************************************************************************************/
 //BRBC by SUMANTO KAR, modified by SUMANTO KAR on 7/5/2020
-/*	else if(b1==0xf && b2>=4 && b2<=7)
+	/*else if(b1==0xf && b2>=4 && b2<=7)
 	{	PC=0x3A;
 		int kbits[7],jump=0,l=0;
 		char temp=0x0;
@@ -1185,7 +1185,61 @@ void Compute()			//Function that performs main computation based on current inst
 		else
 			PC += 0x2;
 
-	}
+	}*/
+/************************************************************************************************/
+//BRGE by SUMANTO KAR, modified by SUMANTO KAR on 11/5/2020
+/*	else if(b1==0xf && b2>=4 && b2<=7 && (b4==4||b4==12))
+	{	PC=0x3A;
+		int kbits[7],jump=0;
+		char temp=0x0;
+		if(debugMode==1)
+		printf("\nBRGE instruction decoded\n");
+		if(SREG[4].data ==0)
+		{
+			//For getting Kbits
+			Hex2Bin(0,b2);
+			Hex2Bin(1,b3);
+			Hex2Bin(2,b4);
+			kbits[6] = bin[0].arr[0];
+			kbits[5] = bin[0].arr[1];
+			for(i=0;i<4;i++)
+				kbits[i+1] = bin[1].arr[i];
+			kbits[0] = bin[2].arr[3];
+
+			if(kbits[6] == 1)	//Signed bit set (k is negative)
+			{
+				for(i=0;i<6;i++)
+					temp += kbits[i]*pow(2,i);
+				temp -= 0x01;
+				i=0;
+				while(temp!=0 && i<=6)
+				{
+					kbits[i] = temp % 2;
+					i++;
+					temp /= 2;
+				}
+				for(i=0;i<6;i++)
+					kbits[i] = !kbits[i];
+
+				for(i=0;i<6;i++)
+					jump += kbits[i]*pow(2,i);
+				jump *= -2;
+			}
+			else
+			{
+				for(i=0;i<6;i++)
+					jump += kbits[i]*pow(2,i);
+				jump *= 2;
+			}
+			if(debugMode == 1)
+				printf("\nJumping from PC:%X to PC: %X",PC,PC+jump+0x02);
+			PC += jump + 0x02;
+
+		}
+		else
+			PC += 0x2;
+
+	}*/
 /************************************************************************************************/
 //BRBS by SUMANTO KAR, modified by SUMANTO KAR on 7/5/2020
 	/*else if(b1==0xf && b2>=0 && b2<=3)
@@ -1258,6 +1312,42 @@ void Compute()			//Function that performs main computation based on current inst
 
 	}*/
 
+/************************************************************************************************/
+//	SWAP BY SUMANTO KAR		11/05/2020
+	else if(b1==0x9 && (b2==0x4 || b2==0x5) && b4==0x2)
+	{	int temp;
+		if(debugMode == 1)
+			{
+				printf("\nSWAP instruction decoded\n");
+				printf("\nBefore execution: Reg[%d]: %X",b3+16,GPR[b3+16].data);
+			}
+		temp=GPR[b3+16].data;
+		GPR[b3+16].data=((temp & 0x0F)<<4) | ((temp &0xF0)>>4);
+		if(debugMode == 1)
+			printf("\nAfter execution: Reg[%d]: %X",b3+16,GPR[b3+16].data);
+		
+			PC += 0x02;
+	}
+/************************************************************************************************/
+//	INC BY SUMANTO KAR		11/05/2020
+	else if(b1==0x09 && (b2==0x05 || b2==0x04) && b4==0x03)
+	{
+		if(debugMode == 1)
+			{
+				printf("\nINC instruction decoded\n");
+				printf("\nBefore execution: Reg[%d]: %X",b3+16,GPR[b3+16].data);
+			}
+		GPR[b3+16].data += 0x01;
+		if(GPR[b3+16].data == 0x0)
+			SREG[1].data = 1;
+		else
+			SREG[1].data = 0;
+
+		if(debugMode == 1)
+			printf("\nAfter execution: Reg[%d]: %X",b3+16,GPR[b3+16].data);
+
+		PC += 0x02;
+	}
 /************************************************************************************************/
 //	CPSE by AJ		01/05/20
 	else if(b1==0x01 && (b2>=0x0 || b2<=0x03))
