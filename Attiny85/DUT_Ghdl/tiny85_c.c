@@ -20,11 +20,13 @@
 
 int debugMode=1;
 int PB0,PB1,PB2,PB3,PB4,PB5,wait_Clocks=0;
-char PC=0;;
+int x;
+char PC=0;
+char SP=0;
 struct memory			//Structure to store RAM and other registers
 {
 	unsigned char data;
-}prog_mem[size],GPR[32],SREG[8],IOREG[64];
+}prog_mem[size],GPR[32],SREG[8],IOREG[64],dataSRAM[512];
 
 /* SREG MAP :- 
 
@@ -675,15 +677,24 @@ void Compute()			//Function that performs main computation based on current inst
 	}
 
 /************************************************************************************************/
-
-
+//RETI by SUMANTO KAR, modified by SUMANTO KAR on 13/5/2020
+	else if(b1==0x9 && b2==0x5 && b3==0x1 && b4==0x8)
+	{	SP=0X65;
+		dataSRAM[SP].data=0x1;
+		dataSRAM[SP-1].data=0x1;
+		if(debugMode==1)
+			printf("RETI instruction decoded\n");
+		
+		PC=(dataSRAM[SP-1].data<<4|dataSRAM[SP].data);
+	}
 /************************************************************************************************/
-//	LDI by AJ		date
+//	LDI by AJ	modified by Sumanto Kar on 13/05/2020	date
 	else if(b1==0xE)								
 	{
 		if(debugMode==1)
 			printf("LDI instruction decoded\n");
 		GPR[b3+16].data = b2*16 + b4;
+		x=b4+16;
 		PC += 0x2;
 	}
 
@@ -834,6 +845,114 @@ void Compute()			//Function that performs main computation based on current inst
 		}
 		PC += 0x2;
 	}
+/************************************************************************************************/
+//	LD by SUMANTO KAR 13/05/2020
+	else if(b1==0x9 && (b2==0x1 || b2==0x0))								
+	{GPR[x+16].data=0x33;GPR[x+17].data=0x43;
+		if(debugMode==1)
+		{	printf("LD instruction decoded\n");
+			printf("\nBefore execution: Reg[%d] = %x\n",b3+16,GPR[b3+16].data);
+		}
+		if(b4==0xC)
+		GPR[b3+16].data=x;
+		else if(b4==0xD)
+		{	x+=1;
+			GPR[b3+16].data=GPR[x+16].data;
+		}
+		else if(b4==0xE)
+		{	x-=1;
+			GPR[b3+16].data=GPR[x+16].data;;
+		}
+		if(debugMode==1)
+		{
+			printf("\nAfter execution Reg[%d] = %x\n",b3+16,GPR[b3+16].data);
+		}
+		PC += 0x2;
+	}
+/************************************************************************************************/
+//	ST by SUMANTO KAR 13/05/2020
+	else if(b1==0x9 && (b2==0x3 || b2==0x2))								
+	{GPR[b3+16].data=0x33;
+		if(debugMode==1)
+		{	printf("ST instruction decoded\n");
+			printf("\nBefore execution: Reg[%d] = %x\n",x+16,GPR[x+16].data);
+		}
+		if(b4==0xC)
+		GPR[x+16].data=GPR[b3+16].data;
+		else if(b4==0xD)
+		{	x+=1;
+			GPR[x+16].data=GPR[b3+16].data;
+		}
+		else if(b4==0xE)
+		{	x-=1;
+			GPR[x+16].data=GPR[b3+16].data;;
+		}
+		if(debugMode==1)
+		{
+			printf("\nAfter execution Reg[%d] = %x\n",x+16,GPR[x+16].data);
+		}
+		PC += 0x2;
+	}
+/************************************************************************************************/
+//	STS by SUMANTO KAR 13/05/2020
+	else if(b1==0xA && (b2>=0x8 && b2<=0x16))							 				
+	{GPR[b3+16].data=0x40;
+		if(debugMode==1)
+		{	printf("STS instruction decoded\n");
+			printf("\nBefore execution: Reg[%d] = %x\n", b4+16,GPR[b4+16].data);
+		}
+		GPR[b4+16].data=GPR[b3+16].data;
+		x=b4+16;
+		if(debugMode==1)
+		{
+			printf("\nAfter execution Reg[%d] = %x\n",b4+16,GPR[b4+16].data);
+		}
+		PC += 0x2;
+	}
+/************************************************************************************************/
+//	LDS by SUMANTO KAR 13/05/2020
+	else if(b1==0xA && (b2>=0x0 && b2<=0x7))							 				
+	{
+		if(debugMode==1)
+			printf("LDS instruction decoded\n");
+		GPR[b3+16].data = GPR[b4+16].data;
+		x=b4+16;
+		PC += 0x2;
+	}
+/************************************************************************************************/
+//	ROR by SUMANTO KAR 13/05/2020
+	else if(b1==0x9 && (b2==0x4 || b2==0x5) && b4==0x07)							 				
+	{	int t;GPR[b3+16].data=0x55;
+		if(debugMode==1)
+		{  	
+			printf("ROR instruction decoded\n");
+			printf("\nBefore execution: Reg[%d] = %x\n",b3+16,GPR[b3+16].data);
+		}
+		t=0x01 & GPR[b3+16].data;
+		GPR[b3+16].data = GPR[b3+16].data>>1;
+		if(SREG[0].data==1)
+		GPR[b3+16].data = 0x80 | GPR[b3+16].data;
+		SREG[0].data=t;
+		if(debugMode==1)
+		{
+			printf("\nAfter execution Reg[%d] = %x\n",b3+16,GPR[b3+16].data);
+		}
+		PC += 0x2;
+	}
+/************************************************************************************************/
+//	SBIS by SUMANTO KAR 13/05/2020
+	else if(b1==0x9 && b2==0x0B)									
+	{	GPR[((0x7 & b3)<<1|(0x8 & b4))+16].data=0x55;
+		int temp=0x01;
+		if(debugMode==1)
+			printf("SBIS instruction decoded\n");
+		temp=temp<<(0x7 & b4);	
+		if((GPR[((0x7 & b3)<<1|(0x8 & b4))+16].data & temp)!=0)	
+		PC += 0x4;
+		else
+		PC+=0x02;
+	}
+
 /************************************************************************************************/
 /*	LSL by SUMANTO	06/05/2020
 	else if(b1==0x0 && b2>=12 && b2<=15 && b3==b4)
@@ -1130,7 +1249,60 @@ void Compute()			//Function that performs main computation based on current inst
 		PC += 0x2;
 	}
 
+/************************************************************************************************/
+//BRPL by SUMANTO KAR  on 13/5/2020
+	/*else if(b1==0xf && b2>=4 && b2<=7 && (b4==0x02||b4==0x0A))
+	{	PC=0x003A;
+		int kbits[7],jump=0;
+		char temp=0x0;
+		if(debugMode==1)
+		printf("\nBRPL instruction decoded\n");
+		if(SREG[2].data ==0)
+		{
+			//For getting Kbits
+			Hex2Bin(0,b2);
+			Hex2Bin(1,b3);
+			Hex2Bin(2,b4);
+			kbits[6] = bin[0].arr[0];
+			kbits[5] = bin[0].arr[1];
+			for(i=0;i<4;i++)
+				kbits[i+1] = bin[1].arr[i];
+			kbits[0] = bin[2].arr[3];
 
+			if(kbits[6] == 1)	//Signed bit set (k is negative)
+			{
+				for(i=0;i<6;i++)
+					temp += kbits[i]*pow(2,i);
+				temp -= 0x01;
+				i=0;
+				while(temp!=0 && i<=6)
+				{
+					kbits[i] = temp % 2;
+					i++;
+					temp /= 2;
+				}
+				for(i=0;i<6;i++)
+					kbits[i] = !kbits[i];
+
+				for(i=0;i<6;i++)
+					jump += kbits[i]*pow(2,i);
+				jump *= -2;
+			}
+			else
+			{
+				for(i=0;i<6;i++)
+					jump += kbits[i]*pow(2,i);
+				jump *= 2;
+			}
+			if(debugMode == 1)
+				printf("\nJumping from PC:%X to PC: %X",PC,PC+jump+0x02);
+			PC += jump + 0x02;
+
+		}
+		else
+			PC += 0x2;
+
+	}*/
 /************************************************************************************************/
 //BRBC by SUMANTO KAR, modified by SUMANTO KAR on 7/5/2020
 	/*else if(b1==0xf && b2>=4 && b2<=7)
@@ -1347,6 +1519,22 @@ void Compute()			//Function that performs main computation based on current inst
 			printf("\nAfter execution: Reg[%d]: %X",b3+16,GPR[b3+16].data);
 
 		PC += 0x02;
+	}
+/************************************************************************************************/
+//	CALL BY SUMANTO KAR		12/05/2020
+	else if(b1==0x9 && (b2==0x4 || b2==0x5) && b4==0x2)
+	{	int temp;
+		if(debugMode == 1)
+			{
+				printf("\nSWAP instruction decoded\n");
+				printf("\nBefore execution: Reg[%d]: %X",b3+16,GPR[b3+16].data);
+			}
+		temp=GPR[b3+16].data;
+		GPR[b3+16].data=((temp & 0x0F)<<4) | ((temp &0xF0)>>4);
+		if(debugMode == 1)
+			printf("\nAfter execution: Reg[%d]: %X",b3+16,GPR[b3+16].data);
+		
+			PC += 0x02;
 	}
 /************************************************************************************************/
 //	CPSE by AJ		01/05/20
